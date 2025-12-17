@@ -1,7 +1,7 @@
 
 # Tâb Game
 
-Tâb is a two player running-fight board game played across the Middle East and North Africa. This project implements the game and integrates Artificial Intelligence with three different levels of difficulty. Included in its features presented below is the website's bilingual capacity. 
+Tâb is a two player running-fight board game played across the Middle East and North Africa. This project implements the game and integrates not only Artificial Intelligence with three different levels of difficulty, but also PVP online in a school server and in a personal server. Included in its features presented below is the website's bilingual capacity. 
 
 
 ![Html5](https://img.shields.io/badge/HTML5-E34F26.svg?style=for-the-badge&logo=HTML5&logoColor=white)
@@ -25,6 +25,8 @@ TabGame/
 |   ├── languageScript.js
 │   ├── leaderBoard.js
 │   ├── network.js
+│   ├── canvas.js
+│   ├── captureAnim.js
 |   ├── statsScript.js
 │   └── visualScript.js
 ├── server/
@@ -49,6 +51,7 @@ README.md
 - Features
 - Gameplay Overview
 - AI overview
+- PVP overview
 - Internationalization
 - Game summary and stats
 - Leaderboard
@@ -126,6 +129,10 @@ Differences by difficulty:
 - Normal: Uses expectminimax with DEPTH=2 (shallow depth). It uses the newest dice value on the root level, and for the levels below, models new dices with the average of the 6 possible values. It's reasonable, with some variety and low cost;
 - Hard: Uses expectminimax with DEPTH=4 (deeper search). It doesn't use any randomness on the final move choice. It's a lot more consistent and strong.
 
+## PVP overview
+
+The PVP mode can be played locally, in the university server, and in a personal server (index.js + server folder). It applies local functions to detect valid moves and local highlights but also uses Network.js and handles the responses correctly. Each event listener calls a Network.js function, that sends data to the server, and the Update function in that script gets the new data, analyzed in the data handler of gameScript. The game works well, but you can't de-select a piece when you get to a two choice move (that will break the game LOL).
+
 
 ## Internationalization (i18n)
 All UI strings are translated (prompts, buttons, summary, leaderboard, dice overlay). 
@@ -140,7 +147,7 @@ How did we add a language:
 - Add object in i18n with a respective key (with 2 languages or more, the key must be the same)
 - Update setLang to include new keys if features are added
 
-## Game summary and stats
+## Game summary and stats for AI
 When the game is over, the browser displays a game summary that consists of:
 - The duration and winner of the game;
 - The game mode, difficulty and width chosen;
@@ -150,28 +157,39 @@ When the game is over, the browser displays a game summary that consists of:
 - Who started the game;
 
 ## Leaderboard
-The leaderboard shows, for each player (Human, AI (easy), AI (normal) and AI (hard)), its rank, name, number of games played, number of games won and the win ratio.
+It has two parts, the AI ranking and the PVP ranking.
+
+The AI leaderboard shows, for each player (Human, AI (easy), AI (normal) and AI (hard)), its rank, name, number of games played, number of games won and the win ratio.
 The rank is sorted by the following order: win ratio -> number of games won -> number of games played -> alphabetical order.
 You can also search for a specific player using the search bar.
 It's possible to sort in ascending or descending order. 
 You have a button now, to check the vs Player mode, where you see the top 10 best players in the server.
-
 The data is stored in local storage, so it only resets by clearing browser data. (i.e., it doesn't disappear by refreshing ou closing the browser).
 
+The PVP leaderboard shows, for each player registered in that server, its rank, name, number of games played, won and the ratio. It shows at most 10 players (top 10). Here you can't search nor sort.
+
 ## Configuration and UI elements
-There is two game modes available: vs. AI, with three levels of difficulty (easy, normal and hard) and PvP, where you play against someone in your server. The board can have a range of columns (7, 9, 11, 13, 15), but the recommended value is 9. For the AI game, if the player wishes to start, they need to check the checkbox First to Play and the piece attributed is red. If not, its yellow. When you select the vs Player mode, the first to play will be the first to clicks on "Start Game"
+There is two game modes available: vs. AI, with three levels of difficulty (easy, normal and hard) and PvP, where you play against someone in your server. The board can have a range of columns (7, 9, 11, 13, 15), but the recommended value is 9. For the AI game, if the player wishes to start, they need to check the checkbox First to Play and the piece attributed is red. If not, its yellow. When you select the vs Player mode, the first to play will be the first to clicks on "Start Game".
 
 ## Architecture of scripts
 
-- gameScript.js: board, turns, moves, captures, dice, AI play and summary trigger;
+- gameScript.js: board, turns, moves, captures, dice, AI and PVP play, summary trigger for AI and animation trigger for PVP;
 - ai.js: move selection (and simulation of possible moves)
 - languageScript.js: i18n and live translations
 - statsScript.js: counters and summary rendering
 - leaderBoard.js: sort/search and ratios
 - visualScript.js: modal behaviour
+- authenticationScript.js: login/register and logout
+- canvas.js: handler for animations (confettis, captures)
+- captureAnim.js: capture animation
+- network.js: network GETs and POSTs to connect with the servers avaliable
 
 For example, to throw a dice, the data flows in this order:
+AI:
 dice overlay -> lastDiceValue -> valid moves -> move -> stats/log -> summary/leaderboard
+PVP:
+lastDiceValue (received by the server) -> dice overlay (for visual effects) -> valid moves -> step and move -> new pieces updated and rendered
+
 ## Server Architecture
 
 - index.js: Entry point, server configuration (Port/Public Dir), and HTTP listener setup.
@@ -184,7 +202,7 @@ dice overlay -> lastDiceValue -> valid moves -> move -> stats/log -> summary/lea
 
 For a user to throw a dice (POST /roll), the data flows in this order:
 
-router (identifies route) → game (validates turn/rules) → storage (verifies credentials & gets game state) → game (calculates math/updates positions) → storage (saves stats if winner) → update (broadcasts SSE event to all players) → router (returns JSON result).
+router (identifies route) -> game (validates turn/rules) -> storage (verifies credentials & gets game state) -> game (calculates math/updates positions) -> storage (saves stats if winner) -> update (broadcasts SSE event to all players) -> router (returns JSON result).
 
 ## Improvement Ideas
 A good idea would be to actually see the AI making the move because the dice modal appears on top of the board. Instead the AI uses the dice in a more automatic way than the player and the player just sees the final move, and therefore, may get lost about where they had a piece captured etc. Another thing that we could improve in the future would be resizing the board and chat in relation to the browser's size. If the page is big, for instance when using a monitor, the board is quite small.
