@@ -11,6 +11,12 @@ Tâb is a two player running-fight board game played across the Middle East and 
 [![EN](https://img.shields.io/badge/lang-EN-0078d4?labelColor=555&logo=google-translate&logoColor=white)](#english)
 
 ---
+## Note:
+
+Online game servers have been taken down. However, you can still launch a local copy of the Node server (relevant files in the folder "server").
+Execute the command 'node index.js' via the terminal in the "server" folder to run local copy of server.
+
+---
 ## Directory Tree
 ```text
 TabGame/
